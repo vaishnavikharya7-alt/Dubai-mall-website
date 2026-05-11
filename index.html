@@ -1,0 +1,353 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>The Dubai Mall | Leasing & Sales</title>
+    
+    <!-- Tailwind CSS -->
+    <script src="https://cdn.tailwindcss.com"></script>
+    
+    <!-- React & ReactDOM -->
+    <script crossorigin src="https://unpkg.com/react@18/umd/react.production.min.js"></script>
+    <script crossorigin src="https://unpkg.com/react-dom@18/umd/react-dom.production.min.js"></script>
+    
+    <!-- Babel for JSX -->
+    <script src="https://unpkg.com/@babel/standalone/babel.min.js"></script>
+    
+    <!-- Framer Motion -->
+    <script src="https://unpkg.com/framer-motion@10.16.4/dist/framer-motion.js"></script>
+    
+    <!-- Lucide Icons -->
+    <script src="https://unpkg.com/lucide@latest"></script>
+
+    <!-- Google Fonts -->
+    <link href="https://fonts.googleapis.com/css2?family=Cinzel:wght@400;700;900&family=Manrope:wght@200;300;400;600&display=swap" rel="stylesheet">
+
+    <script>
+        tailwind.config = {
+            theme: {
+                extend: {
+                    fontFamily: {
+                        serif: ['Cinzel', 'serif'],
+                        sans: ['Manrope', 'sans-serif'],
+                    },
+                    colors: {
+                        'gold': {
+                            100: '#F9E79F',
+                            400: '#D4AF37',
+                            500: '#C5A028',
+                            900: '#7D6608',
+                        },
+                        'void': '#030303',
+                        'surface': '#0A0A0A'
+                    }
+                }
+            }
+        }
+    </script>
+
+    <style>
+        body {
+            background-color: #030303;
+            color: #ffffff;
+            cursor: none;
+            overflow-x: hidden;
+        }
+        
+        /* Form Inputs Styling */
+        .input-group input:focus ~ label,
+        .input-group input:not(:placeholder-shown) ~ label,
+        .input-group textarea:focus ~ label,
+        .input-group textarea:not(:placeholder-shown) ~ label {
+            top: -10px;
+            font-size: 0.75rem;
+            color: #D4AF37; /* Gold Color */
+        }
+        
+        .input-group input:focus,
+        .input-group textarea:focus {
+            border-bottom-color: #D4AF37;
+        }
+    </style>
+</head>
+<body>
+    <div id="root"></div>
+
+    <script type="text/babel">
+        const { useState, useEffect, useRef } = React;
+        const { motion, useScroll, useTransform, AnimatePresence } = window.Motion;
+
+        // --- Icons Wrapper ---
+        const Icon = ({ name, size = 24, className }) => {
+            useEffect(() => { lucide.createIcons(); }, [name]);
+            return <i data-lucide={name} width={size} height={size} className={className}></i>;
+        };
+
+        // 1. Custom Cursor
+        const Cursor = () => {
+            const [mousePosition, setMousePosition] = useState({ x: 0, y: 0 });
+            useEffect(() => {
+                const updateMousePosition = (e) => setMousePosition({ x: e.clientX, y: e.clientY });
+                window.addEventListener('mousemove', updateMousePosition);
+                return () => window.removeEventListener('mousemove', updateMousePosition);
+            }, []);
+            return (
+                <motion.div 
+                    className="fixed top-0 left-0 w-8 h-8 border border-gold-400 rounded-full z-[9999] pointer-events-none hidden md:block mix-blend-difference"
+                    animate={{ x: mousePosition.x - 16, y: mousePosition.y - 16 }}
+                    transition={{ type: "tween", ease: "backOut", duration: 0.1 }}
+                />
+            );
+        };
+
+        // 2. Navigation Dock
+        const Dock = () => {
+            const [hovered, setHovered] = useState(false);
+            const navItems = [
+                { id: 'vision', label: 'Vision' },
+                { id: 'retail', label: 'Retail' },
+                { id: 'dining', label: 'Dining' },
+                { id: 'inquiry', label: 'Inquiry' }, // Added Link to form
+            ];
+            return (
+                <motion.div 
+                    initial={{ y: 100 }}
+                    animate={{ y: hovered ? 0 : 40, opacity: hovered ? 1 : 0.6 }}
+                    onHoverStart={() => setHovered(true)}
+                    onHoverEnd={() => setHovered(false)}
+                    className="fixed bottom-10 left-1/2 transform -translate-x-1/2 z-50 glass-panel px-8 py-4 rounded-2xl flex gap-8 items-center backdrop-blur-xl bg-white/5 border border-white/10"
+                >
+                    {navItems.map((item) => (
+                        <a key={item.id} href={`#${item.id}`} className="group flex flex-col items-center gap-1">
+                            <span className="text-xs font-sans tracking-widest uppercase text-gray-400 group-hover:text-gold-400 transition-colors">{item.label}</span>
+                            <div className="w-1 h-1 bg-gold-500 rounded-full opacity-0 group-hover:opacity-100 transition-opacity"></div>
+                        </a>
+                    ))}
+                </motion.div>
+            );
+        };
+
+        // 3. Hero Section
+        const Hero = () => {
+            const { scrollY } = useScroll();
+            const y1 = useTransform(scrollY, [0, 500], [0, 200]);
+            const opacity = useTransform(scrollY, [0, 300], [1, 0]);
+            return (
+                <section className="relative h-screen w-full flex items-center justify-center overflow-hidden">
+                    <motion.div style={{ y: y1 }} className="absolute inset-0 z-0">
+                        <img src="https://images.unsplash.com/photo-1512453979798-5ea904ac66de?q=80&w=2072&auto=format&fit=crop" className="w-full h-full object-cover opacity-60" />
+                        <div className="absolute inset-0 bg-gradient-to-t from-void via-void/50 to-transparent"></div>
+                    </motion.div>
+                    <motion.div style={{ opacity }} className="relative z-10 text-center max-w-4xl px-6">
+                        <motion.div initial={{ clipPath: "inset(0 100% 0 0)" }} animate={{ clipPath: "inset(0 0% 0 0)" }} transition={{ duration: 1.5 }}>
+                            <span className="text-gold-400 tracking-[0.5em] text-xs font-bold uppercase mb-6 block">Welcome to the Future</span>
+                            <h1 className="text-6xl md:text-9xl font-serif font-bold mb-8 leading-none text-white drop-shadow-2xl">THE CENTER OF NOW</h1>
+                        </motion.div>
+                    </motion.div>
+                </section>
+            );
+        };
+
+        // 4. Gravity Well
+        const GravityWell = () => (
+            <section className="py-32 px-6 bg-void relative">
+                <div className="max-w-7xl mx-auto grid grid-cols-1 md:grid-cols-2 gap-20">
+                    <div>
+                        <h2 className="text-4xl md:text-6xl font-serif mb-8">Gravity Pulls <br/> <span className="text-gold-400">Crowds.</span></h2>
+                        <p className="text-gray-400 text-lg leading-relaxed mb-10">Located at the base of the Burj Khalifa, The Dubai Mall is the absolute center of Dubai.</p>
+                    </div>
+                    <div className="relative h-[500px] w-full">
+                        <motion.div whileHover={{ scale: 1.02 }} className="absolute inset-0 bg-surface border border-white/5 overflow-hidden">
+                            <img src="https://images.unsplash.com/photo-1580674684081-7617fbf3d745?q=80&w=1000&auto=format&fit=crop" className="w-full h-full object-cover grayscale hover:grayscale-0 transition-all duration-700" />
+                        </motion.div>
+                    </div>
+                </div>
+            </section>
+        );
+
+        // 5. Modules (Retail/Dining)
+        const ExperienceModule = ({ title, items, id }) => (
+            <section id={id} className="py-24 bg-surface">
+                <div className="px-6 mb-16"><h2 className="text-5xl font-serif text-center mb-4">{title}</h2></div>
+                <div className="flex overflow-x-auto pb-12 px-6 gap-8 snap-x snap-mandatory">
+                    {items.map((item, idx) => (
+                        <motion.div key={idx} className="min-w-[85vw] md:min-w-[600px] h-[400px] relative rounded-sm overflow-hidden group cursor-pointer snap-center" whileHover={{ y: -10 }}>
+                            <img src={item.img} alt={item.name} className="w-full h-full object-cover transition-transform duration-700 group-hover:scale-110" />
+                            <div className="absolute inset-0 bg-black/40 group-hover:bg-black/20 transition-colors"></div>
+                            <div className="absolute bottom-0 left-0 w-full p-8 bg-gradient-to-t from-black to-transparent">
+                                <h3 className="text-3xl font-serif text-white mb-2 translate-y-4 group-hover:translate-y-0 transition-transform">{item.name}</h3>
+                            </div>
+                        </motion.div>
+                    ))}
+                </div>
+            </section>
+        );
+
+        // 6. NEW: Leasing Inquiry Form Section
+        const LeasingInquirySection = () => {
+            const [status, setStatus] = useState('idle'); // idle, submitting, success
+
+            const handleSubmit = (e) => {
+                e.preventDefault();
+                setStatus('submitting');
+                // Simulate API call
+                setTimeout(() => {
+                    setStatus('success');
+                }, 1500);
+            };
+
+            return (
+                <section id="inquiry" className="py-24 px-6 relative overflow-hidden">
+                    {/* Background Elements */}
+                    <div className="absolute top-0 right-0 w-1/3 h-full bg-gold-900/10 blur-3xl rounded-full"></div>
+                    
+                    <div className="max-w-4xl mx-auto relative z-10">
+                        <div className="text-center mb-16">
+                            <span className="text-gold-400 uppercase tracking-widest text-xs font-bold">Partnership</span>
+                            <h2 className="text-4xl md:text-6xl font-serif mt-4 mb-6">Secure Your Footprint</h2>
+                            <p className="text-gray-400">Join the world's most prestigious retail destination.</p>
+                        </div>
+
+                        <motion.div 
+                            initial={{ opacity: 0, y: 30 }}
+                            whileInView={{ opacity: 1, y: 0 }}
+                            viewport={{ once: true }}
+                            className="glass-panel p-8 md:p-12 border border-white/10 rounded-sm relative overflow-hidden"
+                        >
+                            {/* Success State */}
+                            <AnimatePresence>
+                                {status === 'success' ? (
+                                    <motion.div 
+                                        initial={{ opacity: 0, scale: 0.9 }}
+                                        animate={{ opacity: 1, scale: 1 }}
+                                        className="absolute inset-0 bg-void flex flex-col items-center justify-center text-center z-20 p-8"
+                                    >
+                                        <div className="w-20 h-20 border-2 border-gold-400 rounded-full flex items-center justify-center mb-6 text-gold-400">
+                                            <Icon name="check" size={40} />
+                                        </div>
+                                        <h3 className="text-2xl font-serif text-white mb-2">Inquiry Received</h3>
+                                        <p className="text-gray-400">Our leasing director will contact you within 24 hours.</p>
+                                        <button onClick={() => setStatus('idle')} className="mt-8 text-gold-400 hover:text-white underline text-sm uppercase tracking-widest">Send another</button>
+                                    </motion.div>
+                                ) : (
+                                    <form onSubmit={handleSubmit} className="space-y-12">
+                                        <div className="grid grid-cols-1 md:grid-cols-2 gap-12">
+                                            {/* Name Input */}
+                                            <div className="input-group relative">
+                                                <input 
+                                                    type="text" 
+                                                    id="name" 
+                                                    required 
+                                                    placeholder=" " 
+                                                    className="w-full bg-transparent border-b border-white/20 py-3 text-white outline-none transition-colors focus:border-gold-400 placeholder-transparent"
+                                                />
+                                                <label htmlFor="name" className="absolute left-0 top-3 text-gray-500 text-lg transition-all cursor-text pointer-events-none">Full Name</label>
+                                            </div>
+
+                                            {/* Company Input */}
+                                            <div className="input-group relative">
+                                                <input 
+                                                    type="text" 
+                                                    id="company" 
+                                                    required 
+                                                    placeholder=" " 
+                                                    className="w-full bg-transparent border-b border-white/20 py-3 text-white outline-none transition-colors focus:border-gold-400 placeholder-transparent"
+                                                />
+                                                <label htmlFor="company" className="absolute left-0 top-3 text-gray-500 text-lg transition-all cursor-text pointer-events-none">Brand / Company</label>
+                                            </div>
+                                        </div>
+
+                                        {/* Email Input */}
+                                        <div className="input-group relative">
+                                            <input 
+                                                type="email" 
+                                                id="email" 
+                                                required 
+                                                placeholder=" " 
+                                                className="w-full bg-transparent border-b border-white/20 py-3 text-white outline-none transition-colors focus:border-gold-400 placeholder-transparent"
+                                            />
+                                            <label htmlFor="email" className="absolute left-0 top-3 text-gray-500 text-lg transition-all cursor-text pointer-events-none">Email Address</label>
+                                        </div>
+
+                                        {/* Interest Dropdown */}
+                                        <div className="input-group relative">
+                                            <select 
+                                                id="interest" 
+                                                className="w-full bg-transparent border-b border-white/20 py-3 text-white outline-none focus:border-gold-400"
+                                            >
+                                                <option value="" disabled selected className="bg-black">Select Interest Type</option>
+                                                <option value="luxury" className="bg-black">Luxury Flagship</option>
+                                                <option value="retail" className="bg-black">Standard Retail</option>
+                                                <option value="f&b" className="bg-black">Food & Beverage</option>
+                                                <option value="pop" className="bg-black">Pop-up / Activation</option>
+                                            </select>
+                                        </div>
+
+                                        {/* Message */}
+                                        <div className="input-group relative">
+                                            <textarea 
+                                                id="message" 
+                                                rows="3"
+                                                placeholder=" " 
+                                                className="w-full bg-transparent border-b border-white/20 py-3 text-white outline-none transition-colors focus:border-gold-400 placeholder-transparent resize-none"
+                                            ></textarea>
+                                            <label htmlFor="message" className="absolute left-0 top-3 text-gray-500 text-lg transition-all cursor-text pointer-events-none">Brief Proposal</label>
+                                        </div>
+
+                                        <div className="pt-8 flex justify-end">
+                                            <motion.button 
+                                                whileHover={{ scale: 1.05 }}
+                                                whileTap={{ scale: 0.95 }}
+                                                disabled={status === 'submitting'}
+                                                className={`px-10 py-4 uppercase tracking-widest text-sm font-bold transition-colors ${status === 'submitting' ? 'bg-gray-700 text-gray-400' : 'bg-white text-black hover:bg-gold-400'}`}
+                                            >
+                                                {status === 'submitting' ? 'Processing...' : 'Submit Request'}
+                                            </motion.button>
+                                        </div>
+                                    </form>
+                                )}
+                            </AnimatePresence>
+                        </motion.div>
+                    </div>
+                </section>
+            );
+        };
+
+        // --- Main App ---
+        const App = () => {
+            const retailItems = [
+                { name: "Haute Couture", desc: "Dior, Chanel, Louis Vuitton.", img: "https://images.unsplash.com/photo-1441984904996-e0b6ba687e04?q=80&w=1000" },
+                { name: "High Jewelry", desc: "Graff, Cartier, Bulgari.", img: "https://images.unsplash.com/photo-1515562141207-7a88fb7ce338?q=80&w=1000" },
+                { name: "Timepieces", desc: "Patek Philippe, Rolex.", img: "https://images.unsplash.com/photo-1523170335258-f5ed11844a49?q=80&w=1000" },
+            ];
+
+            const diningItems = [
+                { name: "Eataly", desc: "Italian marketplace.", img: "https://images.unsplash.com/photo-1514362545857-3bc16c4c7d1b?q=80&w=1000" },
+                { name: "Social House", desc: "International fusion.", img: "https://images.unsplash.com/photo-1517248135467-4c7edcad34c4?q=80&w=1000" },
+                { name: "Restaurant Hub", desc: "200+ Concepts.", img: "https://images.unsplash.com/photo-1559329007-40df8a9345d8?q=80&w=1000" },
+            ];
+
+            return (
+                <div className="font-sans antialiased selection:bg-gold-500 selection:text-black">
+                    <Cursor />
+                    <Dock />
+                    <main>
+                        <Hero />
+                        <GravityWell />
+                        <ExperienceModule title="The Retail Ecosystem" items={retailItems} id="retail" />
+                        <ExperienceModule title="The Dining Experience" items={diningItems} id="dining" />
+                        <LeasingInquirySection /> {/* Added Form Here */}
+                    </main>
+                    <footer className="py-12 border-t border-white/10 text-center bg-void">
+                        <p className="text-gray-600 text-xs uppercase tracking-widest">© 2023 Emaar Properties. Investor & Leasing Portal.</p>
+                    </footer>
+                </div>
+            );
+        };
+
+        const root = ReactDOM.createRoot(document.getElementById('root'));
+        root.render(<App />);
+    </script>
+</body>
+</html>
